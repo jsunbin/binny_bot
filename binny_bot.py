@@ -1,10 +1,16 @@
+import yaml
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from telegram.ext import Updater, MessageHandler, Filters, CommandHandler
 
 import kworkday
 
-my_token = '********************'
+
+_config = 'bot_config.yaml'
+with open(_config, encoding='utf-8') as f:
+    config = yaml.load(f, Loader=yaml.SafeLoader)
+
+my_token = config["params"]["my_token"]
 updater = Updater(my_token)
 
 
@@ -20,10 +26,10 @@ def message_control(update, context):
     fucking_message_to_handle_list = ["ㅗ"]
 
     if input_message in tired_message_to_handle_list:
-        context.bot.sendPhoto(chat_id=update.effective_chat.id, photo=open('tired.jpg', 'rb'))
+        context.bot.sendPhoto(chat_id=update.effective_chat.id, photo=open(config["params"]["pics"]["tired"], 'rb'))
 
     elif input_message in hungry_message_to_handle_list:
-        context.bot.sendPhoto(chat_id=update.effective_chat.id, photo=open('hungry.jpg', 'rb'))
+        context.bot.sendPhoto(chat_id=update.effective_chat.id, photo=open(config["params"]["pics"]["hungry"], 'rb'))
 
     elif input_message in fucking_message_to_handle_list:
         context.bot.sendMessage(chat_id=update.effective_chat.id, text="""
