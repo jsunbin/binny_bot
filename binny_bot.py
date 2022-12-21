@@ -1,16 +1,23 @@
+import ssl
+import json
 import yaml
+import kworkday
+import requests
+import urllib.request
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from telegram.ext import Updater, MessageHandler, Filters, CommandHandler
 
-import kworkday
-
+ssl._create_default_https_context = ssl._create_unverified_context
 
 _config = 'bot_config.yaml'
 with open(_config, encoding='utf-8') as f:
     config = yaml.load(f, Loader=yaml.SafeLoader)
 
 my_token = config["params"]["my_token"]
+api_key = config["params"]["google"]["api_key"]
+cx = config["params"]["google"]["search_engine_id"]
+
 updater = Updater(my_token)
 
 
@@ -79,16 +86,36 @@ def work_(update, context):
     context.bot.sendMessage(chat_id=update.effective_chat.id, text=now + '\n' +home_time)
 
 
+def search_image(update, context):
+    search_keyword = context.args[0]
+    url = f'https://customsearch.googleapis.com/customsearch/v1?cx={cx}&searchType=image&imgColorType=color&q={search_keyword}&key={api_key}'
+    res = requests.get(url)
+    if res.status_code == 200:
+        google_search_data = json.loads(res.text)
+        img_url = google_search_data["items"][0]["image"]["thumbnailLink"]
+        content_url = google_search_data["items"][0]["image"]["contextLink"]
+
+        urllib.request.urlretrieve(img_url, 'search.jpg')
+
+        context.bot.sendPhoto(chat_id=update.effective_chat.id, photo=open('search.jpg', 'rb'))
+        context.bot.sendMessage(chat_id=update.effective_chat.id, text=content_url)
+
+        print(img_url)
+        print(content_url)
+
+
 def main():
     message_handler = MessageHandler(Filters.text & (~Filters.command), message_control)
     pay_day_handler = CommandHandler("payday", pay_day)
     help_handler = CommandHandler('help', help_bot)
     work_handler = CommandHandler('work', work_)
+    search_handler = CommandHandler('p', search_image)
 
     updater.dispatcher.add_handler(message_handler)
     updater.dispatcher.add_handler(help_handler)
     updater.dispatcher.add_handler(pay_day_handler)
     updater.dispatcher.add_handler(work_handler)
+    updater.dispatcher.add_handler(search_handler)
 
     updater.start_polling()
     updater.idle()
