@@ -1,3 +1,20 @@
+"""
+ Description
+===========
+ 텔레그램 봇 @sunbin_bot
+"""
+# Authors
+# ===========
+#
+# * Jeong Sunbin
+#
+# Change Log
+# --------
+#  * [2022/12/28]
+#     - pay_day: 월급 하루 남았을 때, day, 00:00:00 replace 가능하도록 수정
+#  * [2022/00/00]
+#     - starting
+################################################################################
 import ssl
 import json
 import yaml
@@ -62,13 +79,13 @@ def pay_day(update, context):
     # 월급날까지 남은 날짜 계산
     if today_date < this_month_25:
         d_day = this_month_25 - today_date
-        d_day = str(d_day).replace(' days, 0:00:00', '')
+        d_day = str(d_day).replace(' days, 0:00:00', '').replace(' day, 0:00:00', '')
     elif today_date == this_month_25:
         d_day = 0
     else:
         next_month_25 = today_date.replace(day=25) + relativedelta(months=1)
         d_day = today_date - next_month_25
-        d_day = str(d_day).replace(' days, 0:00:00', '').replace('-', '')
+        d_day = str(d_day).replace(' days, 0:00:00', '').replace('-', '').replace(' day, 0:00:00', '')
 
     if d_day != 0:
         message_to_send = f"{d_day}일 남았용용ㅠㅠ\n이번달 월급은 {this_month_25.day}일"
